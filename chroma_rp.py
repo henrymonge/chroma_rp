@@ -4,7 +4,6 @@ __author__    = 'Henry Monge-Camacho'
 __email__     = 'mongecamachj@ornl.gov'
 
 import os
-
 import radical.pilot as rp
 import radical.utils as ru
 from setup_tasks_example import *
@@ -15,24 +14,13 @@ import queue
 os.environ['RADICAL_PROFILE'] = 'TRUE'
 os.environ['RADICAL_LOG_LVL'] = 'DEBUG'
 
-
-tasks_finished_queue = queue.Queue()
-    
-def task_state_cb(task, state):
-    if state not in rp.FINAL:
-        # ignore all non-finished state transitions
-        return
-    tasks_finished_queue.put([task.uid, task.state])
-
-# register callback that will track for task states
-
 report = ru.Reporter(name='radical.pilot')
 report.title('Getting Started (RP version %s)' % rp.version)
 
 N_NODES = 1
 
 PILOT_DESCRIPTION = {
-    'resource' : 'ornl.frontier_interactive',
+    'resource' : 'ornl.frontier',
     'project'  : 'STF006',
     'nodes'    : N_NODES,
     'cores'    : 48*N_NODES,
@@ -47,8 +35,9 @@ session = rp.Session()
 
 #Create the tasks to run
 
-#tasks,priorities=make_ensemble_tasks(4,8,5,session.uid,'/lustre/orion/stf006/scratch/mcamacho/workflows/qemd/test')
-tasks,priorities=make_ensemble_tasks(4,8,5,session.uid,'/lustre/orion/stf006/scratch/mcamacho/workflows/qemd/test')
+ensemble_path=os.path.abspath(os.getcwd()) #Path were data and output files will be stored, modify as you wish.
+#make_ensemble_tasks(LatticeExtentInSpace,LatticeExtentInTime,Configurations,session.uid,ensemble_path)
+tasks,priorities=make_ensemble_tasks(4,8,5,session.uid,ensemble_path)
 
 def main():
     try:
@@ -71,9 +60,7 @@ def main():
         #for task in sub_tasks:
         #   print('%s: %s' % (task.uid, task.state))
 
-        #Dependencies Turn on next two lines
-        #Enable call back for depedency runs
-        #tmgr.register_callback(task_state_cb)
+        #Dependencies Turn on next line
         launch_tasks(tmgr,tasks,PILOT_DESCRIPTION,priorities)
     
         report.progress_done()

@@ -15,7 +15,6 @@ def task_state_cb(task, state):
         # ignore all non-finished state transitions
         return
     tasks_finished_queue.put([task.uid, task.state])
-
 # register callback that will track for task states
 
 
@@ -32,14 +31,6 @@ def check_resources(cpus,gpus,tmgr):
             td=k.description
             u_cpus+=td.ranks*td.cores_per_rank
             u_gpus+=td.ranks*td.gpus_per_rank
-            #time=td.timeout/60.
-            #curr_time=datetime.now().strftime("%H:%M:%S")
-            #time_elapsed=time_str_to_sec(alloc_curr_time)-time_str_to_sec(task_tleft[k.description['uid']])
-            #task_left=time-(time_elapsed/60.0)
-            #print(f'tleft {tleft} < task_left {task_left} {k.description["uid"]}')
-            #if tleft < task_left and k.state!='CANCELED':
-            #    print(f'tleft={tleft} time={time} ',k.state)
-            #    k.cancel()
     return cpus-u_cpus,gpus-u_gpus
 
 
@@ -119,7 +110,6 @@ def make_config_input_files(L,T,nSources,ensemble_path='./test'):
         params['LIME_FILE']=ensemble_path+'/prop/'+str(cfg)+'/'+params['OBJ_ID']+'.lime'
         xml_text+=qio_read%params
 
-
         params['OBJ_ID']=params['SMEARED_PROP']
         params['OBJ_TYPE']='LatticePropagator'
         params['LIME_FILE']=ensemble_path+'/prop/'+str(cfg)+'/'+params['OBJ_ID']+'.lime'
@@ -144,7 +134,7 @@ def make_tasks(L,T,nSources,session_uid,ensemble_path='./'):
     input_files=make_config_input_files(L,T,nSources,ensemble_path=ensemble_path)
 
 
-    launch_source=['source /ccs/proj/lgt128/software/frontier/hip/env.sh',
+    launch_source=['source ENV_FILE',
                    'export OMP_NUM_THREADS=1']
     gpu_prelaunch=["export QUDA_RESOURCE_PATH="+ensemble_path+'/quda_resource',
                    "[[ -d $QUDA_RESOURCE_PATH ]] || mkdir -p $QUDA_RESOURCE_PATH",
@@ -229,7 +219,6 @@ def get_priority_tasks(next_td,alloc_init_time,PILOT_DESCRIPTION,tmgr):
         #Check available wallclock time and resources            
         alloc_curr_time=datetime.now().strftime("%H:%M:%S")
         time_left=PILOT_DESCRIPTION['runtime']-(time_str_to_sec(alloc_curr_time)-time_str_to_sec(alloc_init_time))/60.
-        #print("Time remaining =  ",time_left)
 
         acpus,agpus=check_resources(PILOT_DESCRIPTION['cores'],PILOT_DESCRIPTION['gpus'],tmgr)
 
@@ -255,7 +244,6 @@ def get_priority_tasks(next_td,alloc_init_time,PILOT_DESCRIPTION,tmgr):
 
 def launch_tasks(tmgr,tasks,PILOT_DESCRIPTION,priorities):
 
-
     tmgr.register_callback(task_state_cb) 
     print("Initial task list:\n")
 
@@ -266,7 +254,6 @@ def launch_tasks(tmgr,tasks,PILOT_DESCRIPTION,priorities):
             next_td[tasks[iTask].metadata['priority']]+=[tasks[iTask]]
 
     tasks_active = 0
-    #Submit tasks and print info
 
     print('Start time: '+ datetime.now().strftime("%H:%M:%S"))
     alloc_init_time=datetime.now().strftime("%H:%M:%S")
@@ -280,8 +267,7 @@ def launch_tasks(tmgr,tasks,PILOT_DESCRIPTION,priorities):
         tasks_active += 1
 
     while tasks_active:
-        #print(tasks_active)
-        #task_uid, task_state = tasks_finished_queue.get_nowait()
+
         try:
             task_uid, task_state = tasks_finished_queue.get_nowait()
             tasks_active -= 1
@@ -305,8 +291,5 @@ def launch_tasks(tmgr,tasks,PILOT_DESCRIPTION,priorities):
 
         sub_tasks = tmgr.submit_tasks(task_to_submit)
         tasks_active+=len(sub_tasks)
-
-        #for task in sub_tasks:
-        #   print('%s: %s' % (task.uid, task.state))
 
     print(f'tasks_active: {tasks_active}')

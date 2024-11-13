@@ -56,7 +56,7 @@ echo "popd"
 echo "**********************************"
 
 echo "Setting up env path for radical pilot scripts"
-sed -i "s|source /ccs/proj/lgt128/software/frontier/hip/env.sh|source ${TOPDIR_HIP}/env.sh|" ../setup_tasks_example.py
+sed -i "s|source ENV_FILE|source ${TOPDIR_HIP}/env.sh|" ../setup_tasks_example.py
 echo "Done"
 
 
